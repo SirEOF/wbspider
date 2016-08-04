@@ -19,7 +19,7 @@ EXCEL_FILENAME = "data.xlsx"
 def analysis_excel():
     """
     解析 Excel 文件并获取 SN 列表
-    :return:
+    :return: SN List
     """
     res = []
     book = xlrd.open_workbook(EXCEL_FILENAME)
