@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from apiclient import discovery
-from sn import analysis_excel
-from downloader import init_downloader, download_image, generate_filepath
-from conf import CX, KEY
+
+from src.conf import CX, KEY
+from src.downloader import init_downloader, download_image, generate_filepath
+from src.sn import analysis_excel
 
 
 def main():
