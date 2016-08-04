@@ -16,8 +16,10 @@ def main():
         if "items" in res:
             link = res["items"][0]["link"]
             filepath = generate_filepath(sn, link)
-            download_image(img_url=link, filepath=filepath)
-            print("SN " + sn + " OK")
+            if download_image(img_url=link, filepath=filepath):
+                print("SN " + sn + " OK")
+            else:
+                print("SN " + sn + " SKIP, NETWORK PROBLEM")
         else:
             print("SN " + sn + " SKIP")
     print("DONE.")

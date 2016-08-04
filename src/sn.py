@@ -2,8 +2,7 @@
 
 import xlrd
 
-# Excel 文件名
-EXCEL_FILENAME = "data.xlsx"
+from src.conf import EXCEL_FILENAME
 
 
 def analysis_excel():

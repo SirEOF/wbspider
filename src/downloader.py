@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import os
+import socket
+
 import httplib2
 
-# 图片存储目录
-IMG_DIR = "images"
+from src.conf import IMG_DIR
 
 
 def init_downloader():
@@ -19,10 +20,14 @@ def download_image(img_url, filepath):
     :param filepath: 本地保存路径
     """
     h = httplib2.Http()
-    resp, content = h.request(img_url)
+    try:
+        resp, content = h.request(img_url)
+    except socket.error:
+        return False
     if resp["status"] == "200":
         with open(filepath, "wb") as f:
             f.write(content)
+    return True
 
 
 def generate_filepath(sn, mime):
