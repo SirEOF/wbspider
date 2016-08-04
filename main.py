@@ -15,7 +15,7 @@ def main():
     print("Prepare to connect the google server...")
     cse = discovery.build("customsearch", "v1", developerKey=KEY).cse()
     print("Google server has connected\n")
-    print("Prepare to analysis excel file")
+    print("Prepare to analysis excel file...")
     sn_list = analysis_excel()
     print("Found " + str(len(sn_list)) + " sn in excel\n")
     for sn in sn_list:
@@ -25,8 +25,8 @@ def main():
             filepath = generate_filepath(sn, img_url)
             add_task(sn, img_url, filepath)
         else:
-            print("SKIP: SN " + sn + " NOT A IMAGE")
-    print("OK: " + str(len(sn_list)) + " NO RESULT\n")
+            print("SKIP: SN " + sn + " NO RESULT")
+    print("OK: " + str(len(sn_list)) + " SN HAS ADD TO THE QUEUE\n")
 
     threads = []
     for i in xrange(DOWNLOAD_WORKER_NUM):
@@ -35,8 +35,8 @@ def main():
         threads.append(thread)
     for thread in threads:
         thread.join()
-
-    print("\nDONE.")
+    print("\nDONE. Please view the \"images\" directory.")
+    raw_input("\nPress ENTER key to exit...")
 
 
 if __name__ == "__main__":

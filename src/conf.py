@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # 默认超时 (s)
-DEFAULT_TIMEOUT = 10
+DEFAULT_TIMEOUT = 15
 
 # Google API Key
 KEY = "AIzaSyBxjaBRqyg8Ql7sC43v_UyMdTQ6om0xXQY"

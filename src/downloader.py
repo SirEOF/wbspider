@@ -31,7 +31,7 @@ def download_worker():
         h = httplib2.Http()
         try:
             resp, content = h.request(img_url)
-        except socket.error:
+        except socket.error, socket.timeout:
             print("SKIP: SN " + sn + " NETWORK PROBLEM")
             continue
         if resp["status"] == "200":

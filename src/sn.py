@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import sys
 import xlrd
 
 from src.conf import EXCEL_FILENAME
@@ -15,7 +15,8 @@ def analysis_excel():
         book = xlrd.open_workbook(EXCEL_FILENAME)
     except IOError:
         print("NO data.xlsx FOUND IN CURRENT DIRECTORY.")
-        return []
+        raw_input("\nPress ENTER key to exit...")
+        sys.exit(1)
     sh = book.sheet_by_index(0)
     nrows = sh.nrows
     for i in xrange(0, nrows):
