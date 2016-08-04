@@ -37,7 +37,7 @@ def download_worker():
         if resp["status"] == "200":
             with open(filepath, "wb") as f:
                 f.write(content)
-            print("OK: SN " + sn)
+            print("OK: SN " + sn + " HAS DOWNLOADED")
         else:
             print("SKIP: SN " + sn + " CANNOT ACCESS THE IMAGE")
 
