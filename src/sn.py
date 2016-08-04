@@ -11,7 +11,11 @@ def analysis_excel():
     :return: SN List
     """
     res = []
-    book = xlrd.open_workbook(EXCEL_FILENAME)
+    try:
+        book = xlrd.open_workbook(EXCEL_FILENAME)
+    except IOError:
+        print("NO data.xlsx FOUND IN CURRENT DIRECTORY.")
+        return []
     sh = book.sheet_by_index(0)
     nrows = sh.nrows
     for i in xrange(0, nrows):

@@ -2,10 +2,44 @@
 
 import os
 import socket
-
+import Queue
 import httplib2
+import threading
 
-from src.conf import IMG_DIR
+from src.conf import IMG_DIR, DOWNLOAD_WORKER_NUM
+
+SHARE_QUEUE = Queue.Queue()
+
+
+class DownloadThread(threading.Thread):
+    def __init__(self, func):
+        super(DownloadThread, self).__init__()
+        self.func = func
+
+    def run(self):
+        self.func()
+
+
+def download_worker():
+    global SHARE_QUEUE
+    while not SHARE_QUEUE.empty():
+        item = SHARE_QUEUE.get()
+        sn = item["sn"]
+        img_url = item["img_url"]
+        filepath = item["filepath"]
+
+        h = httplib2.Http()
+        try:
+            resp, content = h.request(img_url)
+        except socket.error:
+            print("SKIP: SN " + sn + " NETWORK PROBLEM")
+            continue
+        if resp["status"] == "200":
+            with open(filepath, "wb") as f:
+                f.write(content)
+            print("OK: SN " + sn)
+        else:
+            print("SKIP: SN " + sn + " CANNOT ACCESS THE IMAGE")
 
 
 def init_downloader():
@@ -13,21 +47,18 @@ def init_downloader():
         os.makedirs(IMG_DIR)
 
 
-def download_image(img_url, filepath):
+def add_task(sn, img_url, filepath):
     """
-    下载图片
-    :param img_url: 图片网址
-    :param filepath: 本地保存路径
+    向下载队列中增加任务
+    :param img_url: 图片 URL
+    :param filepath: 保存路径
     """
-    h = httplib2.Http()
-    try:
-        resp, content = h.request(img_url)
-    except socket.error:
-        return False
-    if resp["status"] == "200":
-        with open(filepath, "wb") as f:
-            f.write(content)
-    return True
+    global SHARE_QUEUE
+    SHARE_QUEUE.put({
+        "sn": sn,
+        "img_url": img_url,
+        "filepath": filepath,
+    })
 
 
 def generate_filepath(sn, mime):
