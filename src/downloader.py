@@ -34,6 +34,9 @@ def download_worker():
         except socket.error, socket.timeout:
             print("SKIP: SN " + sn + " NETWORK PROBLEM")
             continue
+        except Exception as e:
+            print("SKIP: SN " + sn + " UNKNOWN ERROR " + e.message)
+            continue
         if resp["status"] == "200":
             with open(filepath, "wb") as f:
                 f.write(content)

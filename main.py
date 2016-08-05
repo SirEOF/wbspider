@@ -26,11 +26,14 @@ def main():
         except errors.HttpError, httplib2.HttpLib2Error:
             print("FAIL: Cannot access google server, please check your network connection.")
             continue
+        except Exception as e:
+            print("FAIL: " + e.message)
+            continue
         if "items" in res:
             img_url = res["items"][0]["link"]
             filepath = generate_filepath(sn, img_url)
             add_task(sn, img_url, filepath)
-            print("OK: SN " + sn + " HAS GOT LINK")
+            print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
         else:
             print("SKIP: SN " + sn + " NO RESULT")
     print("")
