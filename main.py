@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
-
+import os
 import socket
 import httplib2
 
 from apiclient import discovery, errors
 from src.conf import CX, KEY, DEFAULT_TIMEOUT, DOWNLOAD_WORKER_NUM
 from src.downloader import init_downloader, generate_filepath, DownloadThread, add_task, download_worker
-from src.sn import analysis_excel
+from src.sn import get_sn_list
+from src.saver import init_db, db, Saver
 
 socket.setdefaulttimeout(DEFAULT_TIMEOUT)
 
 
 def main():
+    init_db()
     init_downloader()
     print("Prepare to connect the google server...")
     cse = discovery.build("customsearch", "v1", developerKey=KEY).cse()
     print("Google server has connected\n")
 
     print("Prepare to analysis excel file...")
-    sn_list = analysis_excel()
-    print("Found " + str(len(sn_list)) + " sn in excel\n")
+    sn_list = get_sn_list()
+    print("Found " + str(len(sn_list)) + " sn in excel and backup file\n")
     for sn in sn_list:
         try:
             res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
@@ -32,6 +34,15 @@ def main():
         if "items" in res:
             img_url = res["items"][0]["link"]
             filepath = generate_filepath(sn, img_url)
+            if os.path.exists(filepath):
+                print("SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
+                saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+                saver.status = True
+                saver.save()
+                continue
+            saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+            saver.status = False
+            saver.save()
             add_task(sn, img_url, filepath)
             print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
         else:
@@ -47,6 +58,7 @@ def main():
         thread.join()
     print("\nDONE. Please view the \"images\" directory.")
     raw_input("\nPress ENTER key to exit...")
+    db.close()
 
 
 if __name__ == "__main__":

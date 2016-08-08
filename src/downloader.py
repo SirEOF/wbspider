@@ -7,8 +7,10 @@ import httplib2
 import threading
 
 from src.conf import IMG_DIR, DOWNLOAD_WORKER_NUM
+from src.saver import DB_LOCK, db, Saver
 
 SHARE_QUEUE = Queue.Queue()
+PRINT_LOCK = threading.Lock()
 
 
 class DownloadThread(threading.Thread):
@@ -32,17 +34,25 @@ def download_worker():
         try:
             resp, content = h.request(img_url)
         except socket.error, socket.timeout:
-            print("SKIP: SN " + sn + " NETWORK PROBLEM")
+            with PRINT_LOCK:
+                print("SKIP: SN " + sn + " NETWORK PROBLEM")
             continue
         except Exception as e:
-            print("SKIP: SN " + sn + " UNKNOWN ERROR " + e.message)
+            with PRINT_LOCK:
+                print("SKIP: SN " + sn + " UNKNOWN ERROR " + e.message)
             continue
         if resp["status"] == "200":
             with open(filepath, "wb") as f:
                 f.write(content)
-            print("OK: SN " + sn + " HAS DOWNLOADED")
+            with DB_LOCK:
+                saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+                saver.status = True
+                saver.save()
+            with PRINT_LOCK:
+                print("OK: SN " + sn + " HAS DOWNLOADED")
         else:
-            print("SKIP: SN " + sn + " CANNOT ACCESS THE IMAGE")
+            with PRINT_LOCK:
+                print("SKIP: SN " + sn + " CANNOT ACCESS THE IMAGE")
 
 
 def init_downloader():

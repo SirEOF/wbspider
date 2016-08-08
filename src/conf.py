@@ -17,3 +17,6 @@ EXCEL_FILENAME = "../data.xlsx"
 
 # 并发下载数
 DOWNLOAD_WORKER_NUM = 10
+
+# 断点续传文件
+SAVER_FILE = "saver.bak"
