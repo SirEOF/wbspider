@@ -59,7 +59,7 @@ def main():
         saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
         saver.status = False
         saver.save()
-        
+
         add_task(sn, img_url, filepath)
         print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
 
