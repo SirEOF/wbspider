@@ -25,8 +25,8 @@ def main():
         print('NO IMAGES DOWNLOAD, WILL START')
     print('')
 
-    link = open('link.csv', 'wb')
-    linkwriter = csv.writer(link, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    link = open('link.csv', 'ab')
+    linkwriter = csv.writer(link, delimiter=',', quotechar='\"', quoting=csv.QUOTE_ALL)
 
     init_db()
     init_downloader()
@@ -70,28 +70,25 @@ def main():
                 filepath = generate_filepath(sn, img_url)
                 if not download_image:
                     print("SN " + sn + " HAS LINKED")
-                    continue
             else:
                 print("SKIP: SN " + sn + " NO RESULT")
                 linkwriter.writerow([sn, "SKIP: NO RESULT"])
                 continue
-        elif not download_image:
-            linkwriter.writerow([sn, img_url])
-            continue
 
-        if os.path.exists(filepath):
-            print("SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
+        if download_image:
+            if os.path.exists(filepath):
+                print("SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
+                saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+                saver.status = True
+                saver.save()
+                continue
+
             saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-            saver.status = True
+            saver.status = False
             saver.save()
-            continue
 
-        saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-        saver.status = False
-        saver.save()
-
-        add_task(sn, img_url, filepath)
-        print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
+            add_task(sn, img_url, filepath)
+            print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
 
     print("ALL LINKS DONE!")
     link.close()
