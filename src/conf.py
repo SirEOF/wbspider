@@ -10,10 +10,10 @@ KEY = "AIzaSyCjTM6tq-oPuKBil6CN5Uz6NfFT0-rJXoE"
 CX = "004700838847443755952:aavsupo994o"
 
 # 图片存储目录
-IMG_DIR = "../images"
+IMG_DIR = "images"
 
 # Excel 文件名
-EXCEL_FILENAME = "../data.xlsx"
+EXCEL_FILENAME = "data.xlsx"
 
 # 并发下载数
 DOWNLOAD_WORKER_NUM = 10
