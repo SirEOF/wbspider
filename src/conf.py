@@ -4,10 +4,10 @@
 DEFAULT_TIMEOUT = 15
 
 # Google API Key
-KEY = "AIzaSyCm61SXL4TiHl0UN-sIJtA0hOmnVB6sFtY"
+KEY = "AIzaSyCjTM6tq-oPuKBil6CN5Uz6NfFT0-rJXoE"
 
 # Search Engine ID
-CX = "012699395589507283630:jpbsbijea9c"
+CX = "004700838847443755952:aavsupo994o"
 
 # 图片存储目录
 IMG_DIR = "../images"

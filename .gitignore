@@ -3,3 +3,4 @@
 images/
 *.pyc
 *.bak
+.idea/

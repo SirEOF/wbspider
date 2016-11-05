@@ -2,6 +2,7 @@
 import os
 import socket
 import httplib2
+import time
 from peewee import *
 from apiclient import discovery, errors
 from src.conf import CX, KEY, DEFAULT_TIMEOUT, DOWNLOAD_WORKER_NUM
@@ -34,10 +35,14 @@ def main():
             exist = False
 
         if not exist:
+            time.sleep(1)
             try:
                 res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
-            except errors.HttpError, httplib2.HttpLib2Error:
-                print("FAIL: Cannot access google server, please check your network connection.")
+            except errors.HttpError as e:
+                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPERROR): %s" % e)
+                continue
+            except httplib2.HttpLib2Error as e:
+                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPLIB2ERROR): %s" % e)
                 continue
             except Exception as e:
                 print("FAIL: " + e.message)
