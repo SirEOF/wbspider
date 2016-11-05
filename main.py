@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import csv
 import socket
 import httplib2
 import time
@@ -14,6 +15,19 @@ socket.setdefaulttimeout(DEFAULT_TIMEOUT)
 
 
 def main():
+    download_image = False
+    input = raw_input('Download Image? (yes or no)')
+    if input == 'yes':
+        download_image = True
+        print('CONFIRMED DOWNLOAD IMAGE, WILL START')
+    else:
+        download_image = False
+        print('NO IMAGES DOWNLOAD, WILL START')
+    print('')
+
+    link = open('link.csv', 'wb')
+    linkwriter = csv.writer(link, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
     init_db()
     init_downloader()
     print("Prepare to connect the google server...")
@@ -39,20 +53,31 @@ def main():
             try:
                 res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
             except errors.HttpError as e:
-                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPERROR): %s" % e)
+                print("FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e)
+                linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e])
                 continue
             except httplib2.HttpLib2Error as e:
-                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPLIB2ERROR): %s" % e)
+                print("FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e)
+                linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e])
                 continue
             except Exception as e:
                 print("FAIL: " + e.message)
+                linkwriter.writerow([sn, "FAIL: " + e.message])
                 continue
             if "items" in res:
                 img_url = res["items"][0]["link"]
+                linkwriter.writerow([sn, img_url])
                 filepath = generate_filepath(sn, img_url)
+                if not download_image:
+                    print("SN " + sn + " HAS LINKED")
+                    continue
             else:
                 print("SKIP: SN " + sn + " NO RESULT")
+                linkwriter.writerow([sn, "SKIP: NO RESULT"])
                 continue
+        elif not download_image:
+            linkwriter.writerow([sn, img_url])
+            continue
 
         if os.path.exists(filepath):
             print("SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
@@ -68,16 +93,18 @@ def main():
         add_task(sn, img_url, filepath)
         print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
 
-    print("")
+    print("ALL LINKS DONE!")
+    link.close()
 
-    threads = []
-    for i in xrange(DOWNLOAD_WORKER_NUM):
-        thread = DownloadThread(download_worker)
-        thread.start()
-        threads.append(thread)
-    for thread in threads:
-        thread.join()
-    print("\nDONE. Please view the \"images\" directory.")
+    if download_image:
+        threads = []
+        for i in xrange(DOWNLOAD_WORKER_NUM):
+            thread = DownloadThread(download_worker)
+            thread.start()
+            threads.append(thread)
+        for thread in threads:
+            thread.join()
+        print("\nDONE. Please view the \"images\" directory.")
     raw_input("\nPress ENTER key to exit...")
     db.close()
 
