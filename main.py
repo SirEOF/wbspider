@@ -38,12 +38,13 @@ def main():
     sn_list = get_sn_list()
     print("Found " + str(len(sn_list)) + " sn in excel and backup file\n")
     for sn in sn_list:
+        sn = sn.encode('utf-8')
         img_url = ""
         filepath = ""
         exist = True
         try:
             s = Saver.get(Saver.sn == sn)
-            img_url = s.img_url
+            img_url = s.img_url.encode('utf-8')
             filepath = s.filepath
         except DoesNotExist:
             exist = False
@@ -65,7 +66,7 @@ def main():
                 linkwriter.writerow([sn, "FAIL: " + e.message])
                 continue
             if "items" in res:
-                img_url = res["items"][0]["link"]
+                img_url = res["items"][0]["link"].encode('utf-8')
                 linkwriter.writerow([sn, img_url])
                 filepath = generate_filepath(sn, img_url)
                 if not download_image:

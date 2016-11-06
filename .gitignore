@@ -4,3 +4,4 @@ images/
 *.pyc
 *.bak
 .idea/
+link.csv
