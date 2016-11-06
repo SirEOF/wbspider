@@ -8,7 +8,7 @@ from peewee import *
 from apiclient import discovery, errors
 from src.conf import CX, KEY, DEFAULT_TIMEOUT, DOWNLOAD_WORKER_NUM
 from src.downloader import init_downloader, generate_filepath, DownloadThread, add_task, download_worker
-from src.sn import get_sn_list
+from src.sn import get_sn_list, analysis_excel
 from src.saver import init_db, db, Saver
 
 socket.setdefaulttimeout(DEFAULT_TIMEOUT)
@@ -35,34 +35,39 @@ def main():
     print("Google server has connected\n")
 
     print("Prepare to analysis excel file...")
-    sn_list = get_sn_list()
-    print("Found " + str(len(sn_list)) + " sn in excel and backup file\n")
+    # sn_list = get_sn_list()
+    sn_list = analysis_excel()
+    print("Found " + str(len(sn_list)) + " sn in excel\n")
+    count = 0
+    sn_list_len = len(sn_list)
     for sn in sn_list:
+        count += 1
         sn = sn.encode('utf-8')
         img_url = ""
         filepath = ""
-        exist = True
-        try:
-            s = Saver.get(Saver.sn == sn)
-            img_url = s.img_url.encode('utf-8')
-            filepath = s.filepath
-        except DoesNotExist:
-            exist = False
+        # exist = True
+        # try:
+        #     s = Saver.get(Saver.sn == sn)
+        #     img_url = s.img_url.encode('utf-8')
+        #     filepath = s.filepath
+        # except DoesNotExist:
+        #     exist = False
+        exist = False
 
         if not exist:
             time.sleep(1)
             try:
                 res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
             except errors.HttpError as e:
-                print("FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e)
+                print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e)
                 linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e])
                 continue
             except httplib2.HttpLib2Error as e:
-                print("FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e)
+                print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e)
                 linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e])
                 continue
             except Exception as e:
-                print("FAIL: " + e.message)
+                print("(%d/%d) " % (count, sn_list_len) + "FAIL: " + e.message)
                 linkwriter.writerow([sn, "FAIL: " + e.message])
                 continue
             if "items" in res:
@@ -70,26 +75,26 @@ def main():
                 linkwriter.writerow([sn, img_url])
                 filepath = generate_filepath(sn, img_url)
                 if not download_image:
-                    print("SN " + sn + " HAS LINKED")
+                    print("(%d/%d) " % (count, sn_list_len) + "SN " + sn + " HAS LINKED")
             else:
-                print("SKIP: SN " + sn + " NO RESULT")
+                print("(%d/%d) " % (count, sn_list_len) + "SKIP: SN " + sn + " NO RESULT")
                 linkwriter.writerow([sn, "SKIP: NO RESULT"])
                 continue
 
         if download_image:
             if os.path.exists(filepath):
-                print("SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
-                saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-                saver.status = True
-                saver.save()
+                print("(%d/%d) " % (count, sn_list_len) + "SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
+                # saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+                # saver.status = True
+                # saver.save()
                 continue
 
-            saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-            saver.status = False
-            saver.save()
+            # saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
+            # saver.status = False
+            # saver.save()
 
             add_task(sn, img_url, filepath)
-            print("OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
+            print("(%d/%d) " % (count, sn_list_len) + "OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
 
     print("ALL LINKS DONE!")
     link.close()
