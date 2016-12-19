@@ -30,7 +30,7 @@ def download_worker():
         img_url = item["img_url"]
         filepath = item["filepath"]
 
-        h = httplib2.Http()
+        h = httplib2.Http(disable_ssl_certificate_validation=True)
         try:
             resp, content = h.request(img_url)
         except socket.error, socket.timeout:
@@ -39,7 +39,7 @@ def download_worker():
             continue
         except Exception as e:
             with PRINT_LOCK:
-                print("SKIP: SN " + sn + " UNKNOWN ERROR " + e.message)
+                print("SKIP: SN " + sn + " UNKNOWN ERROR " + str(e.message))
             continue
         if resp["status"] == "200":
             with open(filepath, "wb") as f:
