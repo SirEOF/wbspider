@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
+
 import os
 import csv
 import socket
 import httplib2
 import time
-from peewee import *
 from apiclient import discovery, errors
 from src.conf import CX, KEY, DEFAULT_TIMEOUT, DOWNLOAD_WORKER_NUM
 from src.downloader import init_downloader, generate_filepath, DownloadThread, add_task, download_worker
-from src.sn import get_sn_list, analysis_excel
-from src.saver import init_db, db, Saver
+from src.sn import analysis_excel
+from src.saver import init_db, db
 
 socket.setdefaulttimeout(DEFAULT_TIMEOUT)
 
 
 def main():
-    download_image = False
-    input = raw_input('Download Image? (yes or no)')
-    if input == 'yes':
+    user_input = raw_input('Download Image? (yes or no)')
+    if user_input == 'yes':
         download_image = True
         print('CONFIRMED DOWNLOAD IMAGE, WILL START')
     else:
@@ -35,7 +34,6 @@ def main():
     print("Google server has connected\n")
 
     print("Prepare to analysis excel file...")
-    # sn_list = get_sn_list()
     sn_list = analysis_excel()
     print("Found " + str(len(sn_list)) + " sn in excel\n")
     count = 0
@@ -45,13 +43,6 @@ def main():
         sn = sn.encode('utf-8')
         img_url = ""
         filepath = ""
-        # exist = True
-        # try:
-        #     s = Saver.get(Saver.sn == sn)
-        #     img_url = s.img_url.encode('utf-8')
-        #     filepath = s.filepath
-        # except DoesNotExist:
-        #     exist = False
         exist = False
 
         if not exist:
@@ -84,14 +75,7 @@ def main():
         if download_image:
             if os.path.exists(filepath):
                 print("(%d/%d) " % (count, sn_list_len) + "SKIP: SN " + sn + " HAS DOWNLOADED, IN DISK")
-                # saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-                # saver.status = True
-                # saver.save()
                 continue
-
-            # saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-            # saver.status = False
-            # saver.save()
 
             add_task(sn, img_url, filepath)
             print("(%d/%d) " % (count, sn_list_len) + "OK: SN " + sn + " HAS GOT LINK, ADDED TO THE QUEUE")
