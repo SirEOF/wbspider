@@ -36,8 +36,11 @@ def main():
         if not exist:
             try:
                 res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
-            except errors.HttpError, httplib2.HttpLib2Error:
-                print("FAIL: Cannot access google server, please check your network connection.")
+            except errors.HttpError as e:
+                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPERROR): %s" % e)
+                continue
+            except httplib2.HttpLib2Error as e:
+                print("FAIL: Cannot access google server, please check your network connection. REASON(HTTPLIB2ERROR): %s" % e)
                 continue
             except Exception as e:
                 print("FAIL: " + e.message)
