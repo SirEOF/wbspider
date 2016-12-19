@@ -7,7 +7,6 @@ import httplib2
 import threading
 
 from src.conf import IMG_DIR, DOWNLOAD_WORKER_NUM
-from src.saver import DB_LOCK, db, Saver
 
 SHARE_QUEUE = Queue.Queue()
 PRINT_LOCK = threading.Lock()
@@ -44,10 +43,6 @@ def download_worker():
         if resp["status"] == "200":
             with open(filepath, "wb") as f:
                 f.write(content)
-            with DB_LOCK:
-                saver, created = Saver.get_or_create(sn=sn, img_url=img_url, filepath=filepath)
-                saver.status = True
-                saver.save()
             with PRINT_LOCK:
                 print("OK: SN " + sn + " HAS DOWNLOADED")
         else:
