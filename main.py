@@ -34,43 +34,40 @@ def main():
     print("Google server has connected\n")
 
     print("Prepare to analysis excel file...")
-    sn_list = analysis_excel()
-    print("Found " + str(len(sn_list)) + " sn in excel\n")
+    excel_content = analysis_excel()
+    print("Found " + str(len(excel_content)) + " sn in excel\n")
     count = 0
-    sn_list_len = len(sn_list)
-    for sn in sn_list:
-        count += 1
-        sn = sn.encode('utf-8')
-        img_url = ""
-        filepath = ""
-        exist = False
+    sn_list_len = len(excel_content)
+    for row in excel_content:
+        sn = row['sn'].encode('utf-8')
+        description = row['description'].encode('utf-8')
 
-        if not exist:
-            time.sleep(1)
-            try:
-                res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
-            except errors.HttpError as e:
-                print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e)
-                linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % e])
-                continue
-            except httplib2.HttpLib2Error as e:
-                print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e)
-                linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % e])
-                continue
-            except Exception as e:
-                print("(%d/%d) " % (count, sn_list_len) + "FAIL: " + e.message)
-                linkwriter.writerow([sn, "FAIL: " + e.message])
-                continue
-            if "items" in res:
-                img_url = res["items"][0]["link"].encode('utf-8')
-                linkwriter.writerow([sn, img_url])
-                filepath = generate_filepath(sn, img_url)
-                if not download_image:
-                    print("(%d/%d) " % (count, sn_list_len) + "SN " + sn + " HAS LINKED")
-            else:
-                print("(%d/%d) " % (count, sn_list_len) + "SKIP: SN " + sn + " NO RESULT")
-                linkwriter.writerow([sn, "SKIP: NO RESULT"])
-                continue
+        count += 1
+        time.sleep(1)
+        try:
+            res = cse.list(q=sn, cx=CX, searchType="image", num="1").execute()
+        except errors.HttpError as e:
+            print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % str(e.message))
+            linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPERROR): %s" % str(e.message)])
+            continue
+        except httplib2.HttpLib2Error as e:
+            print("(%d/%d) " % (count, sn_list_len) + "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % str(e.message))
+            linkwriter.writerow([sn, "FAIL: Cannot access google server. REASON(HTTPLIB2ERROR): %s" % str(e.message)])
+            continue
+        except Exception as e:
+            print("(%d/%d) " % (count, sn_list_len) + "FAIL: " + str(e.message))
+            linkwriter.writerow([sn, "FAIL: " + e.message])
+            continue
+        if "items" in res:
+            img_url = res["items"][0]["link"].encode('utf-8')
+            linkwriter.writerow([sn, img_url])
+            filepath = generate_filepath(sn, img_url)
+            if not download_image:
+                print("(%d/%d) " % (count, sn_list_len) + "SN " + sn + " HAS LINKED")
+        else:
+            print("(%d/%d) " % (count, sn_list_len) + "SKIP: SN " + sn + " NO RESULT")
+            linkwriter.writerow([sn, "SKIP: NO RESULT"])
+            continue
 
         if download_image:
             if os.path.exists(filepath):

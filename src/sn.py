@@ -22,7 +22,11 @@ def analysis_excel():
     nrows = sh.nrows
     for i in xrange(0, nrows):
         sn = sh.cell_value(rowx=i, colx=0)
-        res.append(sn)
+        description = sh.cell_value(rowx=i, colx=1)
+        res.append({
+            "sn": sn,
+            "description": description,
+        })
     return res
 
 
